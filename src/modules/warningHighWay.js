@@ -3,8 +3,7 @@ const { isPointInBounds, isPointInHighway } = require('../utils');
 const warningHighWay = (cars, io, highways, message) => {
     try {
         const data = JSON.parse(message.toString());
-        const point = data[0]?.gps?.split(',').map(Number);
-
+        const point = [Number(data[0]?.mlat), Number(data[0]?.mlng)];
         highways?.forEach((ref) => {
             const carIndex = cars.findIndex(
                 (car) => car.vid === data[0]?.vid && car.ref_id.equals(ref._id),
@@ -65,7 +64,7 @@ const warningHighWay = (cars, io, highways, message) => {
             }
         });
     } catch (error) {
-        // console.log(error);
+        console.log(error);
     }
 };
 
