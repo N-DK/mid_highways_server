@@ -41,8 +41,27 @@ function isPointInBounds(point, bounds) {
     return inside;
 }
 
+function isPointInHighway(point, highways) {
+    for (const highway of highways) {
+        for (const way of highway.ways) {
+            if (isPointInBounds(point, way.buffer_geometry)) {
+                return {
+                    isInBounds: true,
+                    max_speed: way.maxSpeed,
+                    min_speed: way.minSpeed,
+                    highway_name: highway.highway_name,
+                };
+            }
+        }
+    }
+    return {
+        isInBounds: false,
+    };
+}
+
 module.exports = {
     haversineDistance,
     isPointInCircle,
     isPointInBounds,
+    isPointInHighway,
 };
