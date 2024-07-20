@@ -64,7 +64,7 @@ const warningHighWay = (cars, io, highways, message) => {
             }
         });
     } catch (error) {
-        console.log(error);
+        // console.log(error);
     }
 };
 

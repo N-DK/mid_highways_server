@@ -1,7 +1,6 @@
 const mqtt = require('mqtt');
 const { warningHighWay } = require('../modules/warningHighWay');
-const highway = require('../app/models/Highway');
-const turf = require('@turf/turf');
+const { loadHighways } = require('../modules/loadingHighWay');
 
 require('dotenv').config();
 
@@ -16,16 +15,7 @@ class MQTTService {
 
     async initialize() {
         try {
-            const results = await new Promise((resolve, reject) => {
-                highway.getHighway((err, results) => {
-                    if (err) {
-                        console.log(err);
-                        reject(err);
-                    } else {
-                        resolve(results);
-                    }
-                });
-            });
+            const results = await loadHighways();
             this.highways = results;
         } catch (error) {
             console.error(error);
@@ -51,6 +41,19 @@ class MQTTService {
 
         // Call the message callback function when message arrived
         this.mqttClient.on('message', (topic, message) => {
+            // route to check point
+            // const data = JSON.parse(message.toString());
+            // const fetch = async () => {
+            //     const res = await axios.get(
+            //         `http://localhost:3000/api/v1/highways?lat=${Number(
+            //             data[0]?.mlat,
+            //         )}&lng=${Number(data[0]?.mlng)}`,
+            //     );
+            //     console.log(res.data);
+            // };
+            // fetch();
+
+            // warning high way
             warningHighWay(this.cars, this.io, this.highways, message);
             if (this.messageCallback) this.messageCallback(topic, message);
         });
