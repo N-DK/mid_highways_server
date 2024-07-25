@@ -7,16 +7,23 @@ const highway = {
             callback(null, results);
         });
     },
-    // Thêm xong rồi xóa
     saveHighway: (data, callback) => {
-        deleteMany('highway', {}, (err, results) => {
+        query('highway', {}, (err, results) => {
             if (err) return callback(err);
-            else {
-                return insertMany('highway', data, (err, results) => {
-                    if (err) return callback(err);
-                    callback(null, results);
-                });
-            }
+            const _ids = results.map((result) => result._id);
+            insertMany('highway', data, (err, insertResults) => {
+                if (err) return callback(err);
+                if (insertResults.acknowledged) {
+                    deleteMany(
+                        'highway',
+                        { _id: { $in: _ids } },
+                        (err, deleteResults) => {
+                            if (err) return callback(err);
+                            callback(null, deleteResults);
+                        },
+                    );
+                }
+            });
         });
     },
 };

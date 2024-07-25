@@ -25,12 +25,12 @@ class APIController {
                         highway_name: inBounds.highway_name,
                         max_speed: inBounds.max_speed ?? null,
                         min_speed: inBounds.min_speed ?? null,
-                        isInBounds: inBounds.isInBounds,
+                        is_in_bounds: inBounds.isInBounds,
                     });
                 }
             });
             await Promise.all(promises);
-            return res.json({ isInBounds: false });
+            return res.json({ is_in_bounds: false });
         } catch (error) {
             // console.error(error);
         }
@@ -42,10 +42,7 @@ class APIController {
             const results = await fetchHighways();
             highway.saveHighway(results, (err, results) => {
                 if (err) return res.json({ message: err });
-                res.json({
-                    acknowledged: results.acknowledged,
-                    insertedCount: results.insertedCount,
-                });
+                res.json(results);
             });
         } catch (error) {
             // console.error(error);
