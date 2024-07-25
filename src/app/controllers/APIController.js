@@ -15,11 +15,11 @@ class APIController {
 
         try {
             const results = await loadHighways();
-            results.forEach((ref) => {
+            const promises = results.map(async (ref) => {
                 const point = [req.query.lat, req.query.lng];
                 const inBounds = isPointInHighway(point, ref.highways);
                 if (inBounds.isInBounds) {
-                    res.json({
+                    return res.json({
                         _id: ref._id,
                         ref: ref.ref,
                         highway_name: inBounds.highway_name,
@@ -29,7 +29,8 @@ class APIController {
                     });
                 }
             });
-            res.json({ isInBounds: false });
+            await Promise.all(promises);
+            return res.json({ isInBounds: false });
         } catch (error) {
             // console.error(error);
         }
