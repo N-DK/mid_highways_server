@@ -49,4 +49,33 @@ const update = async (
     }
 };
 
-module.exports = { query, insert, initializeDB, update };
+const deleteMany = async (collectionName, query, callback) => {
+    try {
+        const collection = db.collection(collectionName);
+        const result = await collection.deleteMany(query);
+        callback(null, result);
+    } catch (err) {
+        console.log(err);
+        callback(err);
+    }
+};
+
+const insertMany = async (collectionName, documents, callback) => {
+    try {
+        const collection = db.collection(collectionName);
+        const result = await collection.insertMany(documents);
+        callback(null, result);
+    } catch (err) {
+        console.log(err);
+        callback(err);
+    }
+};
+
+module.exports = {
+    query,
+    insert,
+    initializeDB,
+    update,
+    deleteMany,
+    insertMany,
+};
