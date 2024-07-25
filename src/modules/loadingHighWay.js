@@ -1,24 +1,34 @@
 const highway = require('../app/models/Highway');
-
-let cachedResults = null;
+const redisClient = require('../service/redisService');
+const { cacheData } = require('./cacheData');
 
 async function loadHighways() {
-    if (cachedResults) {
-        return cachedResults;
+    const key = 'highways';
+    if (!redisClient.isReady) {
+        return;
     }
-
-    cachedResults = await new Promise((resolve, reject) => {
-        highway.getHighway((err, results) => {
-            if (err) {
-                console.log(err);
-                reject(err);
-            } else {
-                resolve(results);
-            }
-        });
-    });
-
-    return cachedResults;
+    try {
+        const data = await redisClient.get(key);
+        if (data !== null) {
+            return data;
+        } else {
+            cachedResults = await new Promise((resolve, reject) => {
+                highway.getHighway((err, results) => {
+                    if (err) {
+                        console.log(err);
+                        reject(err);
+                    } else {
+                        resolve(results);
+                    }
+                });
+            });
+            cacheData(cachedResults, 1296000);
+            return cachedResults;
+        }
+    } catch (error) {
+        console.log('Redis cache error:', error);
+        next();
+    }
 }
 
 module.exports = {

@@ -6,11 +6,13 @@ const { initializeDB } = require('./config/db');
 const { initialize } = require('./service/socketService');
 const route = require('./routes');
 const { loadHighways } = require('./modules/loadingHighWay');
+const redisClient = require('./service/redisService');
 
 // Connect DB and load highways
 const connectDBAndLoadHighways = async () => {
     try {
         await initializeDB();
+        await redisClient.connect();
         await loadHighways();
     } catch (error) {
         console.error('Error during initialization', error);
