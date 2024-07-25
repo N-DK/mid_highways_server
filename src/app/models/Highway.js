@@ -7,6 +7,7 @@ const highway = {
             callback(null, results);
         });
     },
+    // Thêm xong rồi xóa
     saveHighway: (data, callback) => {
         deleteMany('highway', {}, (err, results) => {
             if (err) return callback(err);

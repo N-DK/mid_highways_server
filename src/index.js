@@ -24,7 +24,7 @@ const server = http.createServer(app);
 initialize(server);
 
 // Connect to redis
-redisClient.connect();
+// redisClient.connect();
 
 // Connect DB and load highways, then start server
 connectDB().then(() => {
