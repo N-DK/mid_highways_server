@@ -1,5 +1,7 @@
+const fetchHighways = require('../../modules/fetchHighwaysData');
 const { loadHighways } = require('../../modules/loadingHighWay');
 const { isPointInHighway } = require('../../utils');
+const highway = require('../models/Highway');
 
 class APIController {
     async index(req, res, next) {
@@ -28,6 +30,22 @@ class APIController {
                 }
             });
             res.json({ isInBounds: false });
+        } catch (error) {
+            // console.error(error);
+        }
+    }
+
+    // [GET] /api/v1/highways/get-all
+    async getAllHighways(req, res, next) {
+        try {
+            const results = await fetchHighways();
+            highway.saveHighway(results, (err, results) => {
+                if (err) return res.json({ message: err });
+                res.json({
+                    acknowledged: results.acknowledged,
+                    insertedCount: results.insertedCount,
+                });
+            });
         } catch (error) {
             // console.error(error);
         }

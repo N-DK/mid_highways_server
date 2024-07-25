@@ -6,9 +6,10 @@ const { initializeDB } = require('./config/db');
 const { initialize } = require('./service/socketService');
 const route = require('./routes');
 const { loadHighways } = require('./modules/loadingHighWay');
+const redisClient = require('./service/redisService');
 
-// Connect DB and load highways
-const connectDBAndLoadHighways = async () => {
+// Connect DB
+const connectDB = async () => {
     try {
         await initializeDB();
         await loadHighways();
@@ -22,8 +23,11 @@ const connectDBAndLoadHighways = async () => {
 const server = http.createServer(app);
 initialize(server);
 
+// Connect to redis
+redisClient.connect();
+
 // Connect DB and load highways, then start server
-connectDBAndLoadHighways().then(() => {
+connectDB().then(() => {
     route(app);
 
     server.listen(port, () => {
