@@ -15,11 +15,14 @@ class APIController {
 
         try {
             const results = await loadHighways();
+            let found = false;
             const promises = results.map(async (ref) => {
+                if (found) return;
                 const point = [req.query.lat, req.query.lng];
                 const inBounds = isPointInHighway(point, ref.highways);
-                if (inBounds.isInBounds) {
-                    return res.json({
+                if (inBounds.isInBounds && !found) {
+                    found = true;
+                    res.json({
                         _id: ref._id,
                         ref: ref.ref,
                         highway_name: inBounds.highway_name,
@@ -29,10 +32,14 @@ class APIController {
                     });
                 }
             });
+
             await Promise.all(promises);
-            return res.json({ is_in_bounds: false });
+            if (!found) {
+                return res.json({ is_in_bounds: false });
+            }
         } catch (error) {
-            // console.error(error);
+            console.error(error);
+            return res.status(500).json({ message: 'Internal Server Error' });
         }
     }
 
