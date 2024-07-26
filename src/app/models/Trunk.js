@@ -1,12 +1,4 @@
-const { query } = require('../../config/db');
+const { default: mongoose } = require('mongoose');
+const Default = require('./DefaultSchema');
 
-const trunk = {
-    getTrunk: (callback) => {
-        return query('trunk', {}, (err, results) => {
-            if (err) return callback(err);
-            callback(null, results);
-        });
-    },
-};
-
-module.exports = trunk;
+module.exports = mongoose.model('Trunk', Default);

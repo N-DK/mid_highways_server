@@ -1,4 +1,4 @@
-const { isPointInBounds, isPointInHighway } = require('../utils');
+const { isPointInHighway } = require('../utils');
 
 const warningHighWay = (cars, io, highways, message) => {
     try {

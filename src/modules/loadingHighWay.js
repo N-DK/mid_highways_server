@@ -1,33 +1,15 @@
-const { get } = require('http');
-const highway = require('../app/models/Highway');
 const redisClient = require('../service/redisService');
 const { cacheData } = require('./cacheData');
 const fetchHighways = require('./fetchHighwaysData');
-const trunk = require('../app/models/Trunk');
+const Highway = require('../app/models/Highway');
+const Trunk = require('../app/models/Trunk');
 
 let cachedResults = null;
 
 async function getResultHighwayAndTrunk() {
     try {
-        const highways = new Promise((resolve, reject) => {
-            highway.getHighway((err, results) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(results);
-                }
-            });
-        });
-
-        const trunks = new Promise((resolve, reject) => {
-            trunk.getTrunk((err, results) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(results);
-                }
-            });
-        });
+        const highways = Highway.find({}).exec();
+        const trunks = Trunk.find({}).exec();
 
         // Wait for both promises to resolve
         const [highwayResults, trunkResults] = await Promise.all([

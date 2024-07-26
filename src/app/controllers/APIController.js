@@ -1,7 +1,63 @@
 const fetchHighways = require('../../modules/fetchHighwaysData');
 const { loadHighways } = require('../../modules/loadingHighWay');
 const { isPointInHighway } = require('../../utils');
-const highway = require('../models/Highway');
+const Highway = require('../models/Highway');
+const Trunk = require('../models/Trunk');
+const turf = require('@turf/turf');
+
+const insertData = async (req, res, Model) => {
+    const data = req.body;
+    if (!data) {
+        return res.status(400).json({ message: 'Missing data' });
+    }
+
+    const line = turf.lineString(
+        data.highways[0].ways[0].nodes.map((node) => [node[1], node[0]]),
+    );
+    const bufferedLine = turf.buffer(line, 15, { units: 'meters' });
+    const bufferedLineCoords = bufferedLine?.geometry.coordinates[0].map(
+        (coord) => [coord[1], coord[0]],
+    );
+    data.highways[0].ways[0].buffer_geometry = bufferedLineCoords;
+
+    try {
+        const existingRef = await Model.findOne({ ref: data.ref });
+        data.highways[0].id =
+            existingRef.highways[existingRef.highways.length - 1].id + 1;
+        const existingWays =
+            existingRef.highways[existingRef.highways.length - 1].ways;
+        data.highways[0].ways[0].id =
+            existingWays[existingWays.length - 1].id + 1;
+        if (existingRef) {
+            // Add new highway into existing ref
+            if (
+                existingRef.highways.some(
+                    (item) =>
+                        item.highway_name === data.highways[0].highway_name,
+                )
+            ) {
+                const index = existingRef.highways.findIndex(
+                    (item) =>
+                        item.highway_name === data.highways[0].highway_name,
+                );
+                existingRef.highways[index].ways.push(data.highways[0].ways[0]);
+                await existingRef.save();
+                return res.json(existingRef);
+            } else {
+                existingRef.highways.push(data.highways[0]);
+                await existingRef.save();
+                return res.json(existingRef);
+            }
+        } else {
+            // Create new ref
+            const result = await Model.create(data);
+            return res.json(result);
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: error.message });
+    }
+};
 
 class APIController {
     async index(req, res, next) {
@@ -29,10 +85,10 @@ class APIController {
                     });
                 }
             });
-            await Promise.all(promises);
-            return res.json({ is_in_bounds: false });
+            const result = (await Promise.all(promises)).filter(Boolean);
+            if (result.length === 0) return res.json({ is_in_bounds: false });
         } catch (error) {
-            // console.error(error);
+            console.error(error);
         }
     }
 
@@ -47,6 +103,16 @@ class APIController {
         } catch (error) {
             // console.error(error);
         }
+    }
+
+    // [POST] /api/v1/highways
+    async insertHighway(req, res, next) {
+        await insertData(req, res, Highway);
+    }
+
+    // [POST] /api/v1/trunk
+    async insertTrunk(req, res, next) {
+        await insertData(req, res, Trunk);
     }
 }
 
