@@ -8,6 +8,8 @@ const socket = require('./service/socketService');
 const redisClient = require('./service/redisService');
 const { loadHighways } = require('./modules/loadingHighWay');
 var bodyParser = require('body-parser');
+const { importData } = require('./modules/importData');
+const Highway = require('./app/models/Highway');
 
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -16,6 +18,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 const connectDB = async () => {
     try {
         await db.connect();
+        await importData(Highway, 'highway.json');
         // await initializeDB();
         // await loadHighways();
     } catch (error) {

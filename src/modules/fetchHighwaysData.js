@@ -1,5 +1,6 @@
 const { default: axios } = require('axios');
 const turf = require('@turf/turf');
+const Highway = require('../app/models/Highway');
 const vietnameseRegex =
     /[ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯăâêôơưÁÉÍÓÚÝ]/;
 const VN_REGION =
@@ -93,7 +94,6 @@ const fetchHighways = async () => {
                 ),
             }),
         );
-
         return groupedHighwaysArray;
     } catch (error) {
         console.log(error);

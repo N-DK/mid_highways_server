@@ -6,50 +6,67 @@ const Trunk = require('../models/Trunk');
 const turf = require('@turf/turf');
 
 const insertData = async (req, res, Model) => {
-    const data = req.body;
-    if (!data) {
-        return res.status(400).json({ message: 'Missing data' });
-    }
-
-    const line = turf.lineString(
-        data.highways[0].ways[0].nodes.map((node) => [node[1], node[0]]),
-    );
-    const bufferedLine = turf.buffer(line, 15, { units: 'meters' });
-    const bufferedLineCoords = bufferedLine?.geometry.coordinates[0].map(
-        (coord) => [coord[1], coord[0]],
-    );
-    data.highways[0].ways[0].buffer_geometry = bufferedLineCoords;
-
     try {
+        const data = req.body;
+        if (!data) {
+            return res.status(400).json({ message: 'Missing data' });
+        }
+
+        const nodes = data.highways[0].ways[0].nodes;
+        let maxLat = -Infinity,
+            minLat = Infinity,
+            maxLng = -Infinity,
+            minLng = Infinity;
+
+        nodes.forEach(([lng, lat]) => {
+            if (lat > maxLat) maxLat = lat;
+            if (lat < minLat) minLat = lat;
+            if (lng > maxLng) maxLng = lng;
+            if (lng < minLng) minLng = lng;
+        });
+
+        data.highways[0].ways[0].bounds = [
+            [minLat, minLng],
+            [maxLat, maxLng],
+        ];
+
+        const line = turf.lineString(nodes.map(([lng, lat]) => [lat, lng]));
+        const bufferedLine = turf.buffer(line, 15, { units: 'meters' });
+        const bufferedLineCoords = bufferedLine.geometry.coordinates[0].map(
+            ([lat, lng]) => [lng, lat],
+        );
+        data.highways[0].ways[0].buffer_geometry = bufferedLineCoords;
+
         const existingRef = await Model.findOne({ ref: data.ref });
-        data.highways[0].id =
-            existingRef.highways[existingRef.highways.length - 1].id + 1;
-        const existingWays =
-            existingRef.highways[existingRef.highways.length - 1].ways;
-        data.highways[0].ways[0].id =
-            existingWays[existingWays.length - 1].id + 1;
+
         if (existingRef) {
-            // Add new highway into existing ref
-            if (
-                existingRef.highways.some(
-                    (item) =>
-                        item.highway_name === data.highways[0].highway_name,
-                )
-            ) {
-                const index = existingRef.highways.findIndex(
-                    (item) =>
-                        item.highway_name === data.highways[0].highway_name,
+            // Check if the highway already exists
+            const highwayIndex = existingRef.highways.findIndex(
+                (item) => item.highway_name === data.highways[0].highway_name,
+            );
+
+            if (highwayIndex >= 0) {
+                // Add way to existing highway
+                const existingWays = existingRef.highways[highwayIndex].ways;
+                data.highways[0].ways[0].id =
+                    existingWays[existingWays.length - 1].id + 1;
+                existingRef.highways[highwayIndex].ways.push(
+                    data.highways[0].ways[0],
                 );
-                existingRef.highways[index].ways.push(data.highways[0].ways[0]);
-                await existingRef.save();
-                return res.json(existingRef);
             } else {
+                // Add new highway to existing ref
+                data.highways[0].id =
+                    existingRef.highways[existingRef.highways.length - 1].id +
+                    1;
                 existingRef.highways.push(data.highways[0]);
-                await existingRef.save();
-                return res.json(existingRef);
             }
+
+            await existingRef.save();
+            return res.json(existingRef);
         } else {
             // Create new ref
+            data.highways[0].id = 1;
+            data.highways[0].ways[0].id = 1;
             const result = await Model.create(data);
             return res.json(result);
         }
