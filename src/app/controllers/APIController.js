@@ -58,6 +58,7 @@ const insertData = async (req, res, Model) => {
                 data.highways[0].id =
                     existingRef.highways[existingRef.highways.length - 1].id +
                     1;
+                data.highways[0].ways[0].id = 1;
                 existingRef.highways.push(data.highways[0]);
             }
 
@@ -112,11 +113,18 @@ class APIController {
     // [GET] /api/v1/highways/get-all
     async getAllHighways(req, res, next) {
         try {
-            const results = await fetchHighways();
-            highway.saveHighway(results, (err, results) => {
-                if (err) return res.json({ message: err });
-                res.json(results);
-            });
+            const highways = await Highway.find({}).exec();
+            return res.json(highways);
+        } catch (error) {
+            // console.error(error);
+        }
+    }
+
+    // [GET] /api/v1/trunk/get-all
+    async getAllTrunks(req, res, next) {
+        try {
+            const trunks = await Trunk.find({}).exec();
+            return res.json(trunks);
         } catch (error) {
             // console.error(error);
         }
