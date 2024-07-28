@@ -1,4 +1,5 @@
-const fetchHighways = require('../../modules/fetchHighwaysData');
+const { VN_REGION, VN_REGION_TRUNK } = require('../../constant');
+const fetchData = require('../../modules/fetchData');
 const { loadHighways } = require('../../modules/loadingHighWay');
 const { isPointInHighway } = require('../../utils');
 const Highway = require('../models/Highway');
@@ -77,6 +78,21 @@ const insertData = async (req, res, Model) => {
     }
 };
 
+const pullData = async (res, Model, type) => {
+    try {
+        const data = await fetchData(type);
+        if (data.length > 0) {
+            await Model.deleteMany({}).exec();
+            await Model.insertMany(data);
+            return res.json({ message: 'Success' });
+        } else {
+            return res.json({ message: 'No data' });
+        }
+    } catch (error) {
+        console.error(error);
+    }
+};
+
 class APIController {
     async index(req, res, next) {
         res.json({ message: 'Hello World' });
@@ -108,6 +124,16 @@ class APIController {
         } catch (error) {
             console.error(error);
         }
+    }
+
+    // [GET] /api/v1/highways/pull
+    async pullHighways(req, res, next) {
+        pullData(res, Highway, VN_REGION);
+    }
+
+    // [GET] /api/v1/trunks/pull
+    async pullTrunks(req, res, next) {
+        pullData(res, Trunk, VN_REGION_TRUNK);
     }
 
     // [GET] /api/v1/highways/get-all

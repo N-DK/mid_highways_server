@@ -1,15 +1,12 @@
 const { default: axios } = require('axios');
 const turf = require('@turf/turf');
-const Highway = require('../app/models/Highway');
 const vietnameseRegex =
     /[ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯăâêôơưÁÉÍÓÚÝ]/;
-const VN_REGION =
-    'http://overpass-api.de/api/interpreter?data=[out:json];way[%22highway%22=%22motorway%22](9.0,102.0,24.0,110.0);out%20geom;';
 
-const fetchHighways = async () => {
+const fetchData = async (type) => {
     try {
         console.log('LOADING...');
-        const res = await axios.get(VN_REGION);
+        const res = await axios.get(type);
         console.log('LOADED');
         const highwayData = res?.data?.elements.map((way) => ({
             id: way.id,
@@ -100,4 +97,4 @@ const fetchHighways = async () => {
     }
 };
 
-module.exports = fetchHighways;
+module.exports = fetchData;

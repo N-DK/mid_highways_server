@@ -4,6 +4,8 @@ const api = require('../app/controllers/APIController');
 
 router.post('/highways', api.insertHighway);
 router.post('/trunk', api.insertTrunk);
+router.get('/highways/pull', api.pullHighways);
+router.get('/trunks/pull', api.pullTrunks);
 router.get('/highways', api.getHighways);
 router.get('/highways/get-all', api.getAllHighways);
 router.get('/trunk/get-all', api.getAllTrunks);

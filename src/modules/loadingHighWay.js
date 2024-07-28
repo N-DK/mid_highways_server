@@ -1,6 +1,6 @@
 const redisClient = require('../service/redisService');
 const { cacheData } = require('./cacheData');
-const fetchHighways = require('./fetchHighwaysData');
+const fetchHighways = require('./fetchData');
 const Highway = require('../app/models/Highway');
 const Trunk = require('../app/models/Trunk');
 
