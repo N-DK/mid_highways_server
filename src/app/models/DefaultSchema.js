@@ -21,7 +21,7 @@ const highwaySchema = new mongoose.Schema(
         id: {
             type: Number,
         },
-        highway_name: { type: String, default: '' },
+        highway_name: { type: String },
         ways: { type: [waysSchema], default: [] },
     },
     { _id: false },

@@ -4,6 +4,8 @@ const fetchHighways = require('./fetchData');
 const Highway = require('../app/models/Highway');
 const Trunk = require('../app/models/Trunk');
 const TollBoth = require('../app/models/TollBoth');
+const fs = require('fs');
+const path = require('path');
 
 let cachedResults = null;
 
@@ -18,7 +20,11 @@ async function getResultHighwayAndTrunk() {
             await Promise.all([highways, trunks, tollBoth]);
 
         // Combine the results
-        return [...highwayResults, ...trunkResults, ...tollBothResults];
+        return JSON.stringify([
+            ...highwayResults,
+            ...trunkResults,
+            ...tollBothResults,
+        ]);
     } catch (error) {
         console.error(error);
         throw error;
@@ -28,9 +34,18 @@ async function getResultHighwayAndTrunk() {
 async function loadHighways() {
     const key = 'highways';
     if (!redisClient.isReady && !cachedResults) {
-        cachedResults = await getResultHighwayAndTrunk();
+        // Đọc dữ liệu từ tệp JSON
+        const filePathHighway = path.resolve('./src/common/', 'highway.json');
+        const dataH = JSON.parse(fs.readFileSync(filePathHighway, 'utf8'));
+        const filePathTrunk = path.resolve('./src/common/', 'trunk.json');
+        const dataT = JSON.parse(fs.readFileSync(filePathTrunk, 'utf8'));
+
+        cachedResults = [...dataH, ...dataT];
+
         return cachedResults;
     } else if (!redisClient.isReady && cachedResults) {
+        // console.time(cachedResults);
+        // console.timeEnd(cachedResults);
         return cachedResults;
     }
     // Handle case when redis is ready

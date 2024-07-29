@@ -31,7 +31,7 @@ const connectDB = async () => {
 const server = http.createServer(app);
 
 // Connect socket
-socket.initialize(server);
+// socket.initialize(server);
 
 // Connect to redis
 // redisClient.connect();

@@ -106,6 +106,7 @@ class APIController {
 
         try {
             const results = await loadHighways();
+
             const promises = results.map(async (ref) => {
                 const point = [req.query.lat, req.query.lng];
                 const inBounds = isPointInHighway(point, ref.highways);
