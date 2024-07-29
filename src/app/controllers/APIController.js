@@ -1,5 +1,6 @@
 const { VN_REGION, VN_REGION_TRUNK } = require('../../constant');
 const fetchData = require('../../modules/fetchData');
+const { importData } = require('../../modules/importData');
 const { loadHighways } = require('../../modules/loadingHighWay');
 const { isPointInHighway } = require('../../utils');
 const Highway = require('../models/Highway');
@@ -153,6 +154,34 @@ class APIController {
             return res.json(trunks);
         } catch (error) {
             // console.error(error);
+        }
+    }
+
+    // [GET] /api/v1/highways/import
+    async importHighways(req, res, next) {
+        try {
+            const results = await importData(Highway, 'highway.json');
+            if (results?.length > 0) {
+                res.json({ message: 'Success' });
+            } else {
+                res.json({ message: 'No data' });
+            }
+        } catch (error) {
+            res.json({ message: error.message });
+        }
+    }
+
+    // [GET] /api/v1/trunks/import
+    async importTrunks(req, res, next) {
+        try {
+            const results = await importData(Trunk, 'trunk.json');
+            if (results?.length > 0) {
+                res.json({ message: 'Success' });
+            } else {
+                res.json({ message: 'No data' });
+            }
+        } catch (error) {
+            res.json({ message: error.message });
         }
     }
 

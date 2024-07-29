@@ -21,8 +21,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 const connectDB = async () => {
     try {
         await db.connect();
-        // await importData(Highway, 'highway.json');
-        // await importData(Trunk, 'mobicam_server.trunk.json');
         await loadHighways();
     } catch (error) {
         console.error('Error during initialization', error);
