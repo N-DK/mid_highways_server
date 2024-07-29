@@ -1,6 +1,5 @@
 const express = require('express');
 const app = express();
-const port = 3000;
 const http = require('http');
 const route = require('./routes');
 const db = require('./config/db');
@@ -12,12 +11,9 @@ const { importData } = require('./modules/importData');
 const Highway = require('./app/models/Highway');
 const Trunk = require('./app/models/Trunk');
 const cors = require('cors');
-const corsOptions = {
-    origin: 'http://localhost:5173',
-    credentials: true, //access-control-allow-credentials:true
-    optionSuccessStatus: 200,
-};
-app.use(cors(corsOptions));
+require('dotenv').config();
+const port = process.env.PORT || 3000;
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 

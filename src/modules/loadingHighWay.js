@@ -3,6 +3,7 @@ const { cacheData } = require('./cacheData');
 const fetchHighways = require('./fetchData');
 const Highway = require('../app/models/Highway');
 const Trunk = require('../app/models/Trunk');
+const TollBoth = require('../app/models/TollBoth');
 
 let cachedResults = null;
 
@@ -10,15 +11,14 @@ async function getResultHighwayAndTrunk() {
     try {
         const highways = Highway.find({}).exec();
         const trunks = Trunk.find({}).exec();
+        const tollBoth = TollBoth.find({}).exec();
 
         // Wait for both promises to resolve
-        const [highwayResults, trunkResults] = await Promise.all([
-            highways,
-            trunks,
-        ]);
+        const [highwayResults, trunkResults, tollBothResults] =
+            await Promise.all([highways, trunks, tollBoth]);
 
         // Combine the results
-        return [...highwayResults, ...trunkResults];
+        return [...highwayResults, ...trunkResults, ...tollBothResults];
     } catch (error) {
         console.error(error);
         throw error;
