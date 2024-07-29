@@ -1,11 +1,14 @@
 const { VN_REGION, VN_REGION_TRUNK } = require('../../constant');
 const fetchData = require('../../modules/fetchData');
+const { fetchTollBoth } = require('../../modules/fetchTollBoth');
 const { importData } = require('../../modules/importData');
 const { loadHighways } = require('../../modules/loadingHighWay');
 const { isPointInHighway } = require('../../utils');
 const Highway = require('../models/Highway');
 const Trunk = require('../models/Trunk');
 const turf = require('@turf/turf');
+const fs = require('fs');
+const path = require('path');
 
 const insertData = async (req, res, Model) => {
     try {
@@ -79,12 +82,17 @@ const insertData = async (req, res, Model) => {
     }
 };
 
-const pullData = async (res, Model, type) => {
+const pullData = async (res, col, type) => {
     try {
         const data = await fetchData(type);
         if (data.length > 0) {
-            await Model.deleteMany({}).exec();
-            await Model.insertMany(data);
+            data.forEach((item, index) => {
+                fs.writeFileSync(
+                    `./src/common/${col}/${col}-${index}.json`,
+                    JSON.stringify(item),
+                );
+            });
+
             return res.json({ message: 'Success' });
         } else {
             return res.json({ message: 'No data' });
@@ -105,8 +113,16 @@ class APIController {
         }
 
         try {
-            const results = await loadHighways();
+            // Dùng promise
+            // const highways = createPromise('highways', req);
+            // const trunks = createPromise('trunks', req);
+            // const tollboths = createPromise('tollboths', req);
+            // const results = await Promise.all([...highways, ...trunks, ...tollboths]);
+            // const result = results.filter(Boolean);
+            // if (result.length === 0) return res.json({ is_in_bounds: false });
+            // else return res.json(result);
 
+            const results = await loadHighways();
             const promises = results.map(async (ref) => {
                 const point = [req.query.lat, req.query.lng];
                 const inBounds = isPointInHighway(point, ref.highways);
@@ -121,6 +137,7 @@ class APIController {
                     });
                 }
             });
+
             const result = (await Promise.all(promises)).filter(Boolean);
             if (result.length === 0) return res.json({ is_in_bounds: false });
         } catch (error) {
@@ -130,12 +147,33 @@ class APIController {
 
     // [GET] /api/v1/highways/pull
     async pullHighways(req, res, next) {
-        pullData(res, Highway, VN_REGION);
+        pullData(res, 'highways', VN_REGION);
     }
 
     // [GET] /api/v1/trunks/pull
     async pullTrunks(req, res, next) {
-        pullData(res, Trunk, VN_REGION_TRUNK);
+        pullData(res, 'trunks', VN_REGION_TRUNK);
+    }
+
+    // [GET] /api/v1/tollboths/pull
+    async pullTollBoths(req, res, next) {
+        try {
+            const data = await fetchTollBoth();
+            if (data.length > 0) {
+                data.forEach((item, index) => {
+                    fs.writeFileSync(
+                        `./src/common/tollboths/tollboths-${index}.json`,
+                        JSON.stringify(item),
+                    );
+                });
+
+                return res.json({ message: 'Success' });
+            } else {
+                return res.json({ message: 'No data' });
+            }
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     // [GET] /api/v1/highways/get-all

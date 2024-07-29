@@ -1,10 +1,10 @@
 {
     "name": "node_server",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "warning highway",
     "main": "index.js",
     "scripts": {
-        "start": "nodemon --inspect src/index.js",
+        "start": "nodemon --inspect src/index.js --ignore src/common/*",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [

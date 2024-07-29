@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 const haversineDistance = (lat1, lon1, lat2, lon2) => {
     const toRad = (angle) => angle * (Math.PI / 180);
 
@@ -59,9 +62,46 @@ function isPointInHighway(point, highways) {
     };
 }
 
+function createPromise(col, req) {
+    const results = [];
+    const length = fs.readdirSync(`./src/common/${col}`).length;
+
+    for (let i = 0; i < length; i++) {
+        const filePath = path.join(`./src/common/${col}`, `${col}-${i}.json`);
+        const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        // Dùng promise
+        // results.push(
+        //     new Promise((resolve) => {
+        //         const point = [
+        //             parseFloat(req.query.lat),
+        //             parseFloat(req.query.lng),
+        //         ];
+        //         const inBounds = isPointInHighway(point, data.highways);
+
+        //         if (inBounds.isInBounds) {
+        //             resolve({
+        //                 _id: data._id,
+        //                 ref: data.ref,
+        //                 highway_name: inBounds.highway_name,
+        //                 max_speed: inBounds.max_speed ?? null,
+        //                 min_speed: inBounds.min_speed ?? null,
+        //                 is_in_bounds: true,
+        //             });
+        //         } else {
+        //             resolve(null);
+        //         }
+        //     }),
+        // );
+        results.push(data);
+    }
+
+    return results;
+}
+
 module.exports = {
     haversineDistance,
     isPointInCircle,
     isPointInBounds,
     isPointInHighway,
+    createPromise,
 };

@@ -6,6 +6,7 @@ router.get('/check-way', api.getHighways);
 router.post('/highways', api.insertHighway);
 router.post('/trunk', api.insertTrunk);
 router.get('/highways/pull', api.pullHighways);
+router.get('/tollboths/pull', api.pullTollBoths);
 router.get('/trunks/pull', api.pullTrunks);
 router.get('/trunks/import', api.importTrunks);
 router.get('/highways/import', api.importHighways);

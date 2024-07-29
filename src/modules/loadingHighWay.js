@@ -6,6 +6,7 @@ const Trunk = require('../app/models/Trunk');
 const TollBoth = require('../app/models/TollBoth');
 const fs = require('fs');
 const path = require('path');
+const { createPromise } = require('../utils');
 
 let cachedResults = null;
 
@@ -34,18 +35,14 @@ async function getResultHighwayAndTrunk() {
 async function loadHighways() {
     const key = 'highways';
     if (!redisClient.isReady && !cachedResults) {
-        // Đọc dữ liệu từ tệp JSON
-        const filePathHighway = path.resolve('./src/common/', 'highway.json');
-        const dataH = JSON.parse(fs.readFileSync(filePathHighway, 'utf8'));
-        const filePathTrunk = path.resolve('./src/common/', 'trunk.json');
-        const dataT = JSON.parse(fs.readFileSync(filePathTrunk, 'utf8'));
+        const highways = createPromise('highways');
+        const trunks = createPromise('trunks');
+        const tollboths = createPromise('tollboths');
 
-        cachedResults = [...dataH, ...dataT];
+        cachedResults = [...highways, ...trunks, ...tollboths];
 
         return cachedResults;
     } else if (!redisClient.isReady && cachedResults) {
-        // console.time(cachedResults);
-        // console.timeEnd(cachedResults);
         return cachedResults;
     }
     // Handle case when redis is ready
