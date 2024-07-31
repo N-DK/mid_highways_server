@@ -3,14 +3,14 @@ const fetchData = require('../../modules/fetchData');
 const { fetchTollBoth } = require('../../modules/fetchTollBoth');
 const { importData } = require('../../modules/importData');
 const { loadHighways } = require('../../modules/loadingHighWay');
-const { isPointInHighway } = require('../../utils');
+const { isPointInHighway, createPromise } = require('../../utils');
 const Highway = require('../models/Highway');
 const Trunk = require('../models/Trunk');
 const turf = require('@turf/turf');
 const fs = require('fs');
 const path = require('path');
 
-const insertData = async (req, res, Model) => {
+const insertData = async (req, res, col) => {
     try {
         const data = req.body;
         if (!data) {
@@ -42,7 +42,11 @@ const insertData = async (req, res, Model) => {
         );
         data.highways[0].ways[0].buffer_geometry = bufferedLineCoords;
 
-        const existingRef = await Model.findOne({ ref: data.ref });
+        const collections = createPromise(col);
+
+        // const existingRef = await Model.findOne({ ref: data.ref });
+
+        const existingRef = collections.find((ref) => ref.ref === data.ref);
 
         if (existingRef) {
             // Check if the highway already exists
@@ -67,14 +71,25 @@ const insertData = async (req, res, Model) => {
                 existingRef.highways.push(data.highways[0]);
             }
 
-            await existingRef.save();
-            return res.json(existingRef);
+            // Ghi đè lại file
+            const index = collections.indexOf(existingRef);
+            fs.writeFileSync(
+                `./src/common/${col}/${col}-${index}.json`,
+                JSON.stringify(existingRef),
+            );
+            // await existingRef.save();
+            return res.json(collections[index]);
         } else {
             // Create new ref
-            data.highways[0].id = 1;
-            data.highways[0].ways[0].id = 1;
-            const result = await Model.create(data);
-            return res.json(result);
+            // data.highways[0].id = 1;
+            // data.highways[0].ways[0].id = 1;
+            // const result = await Model.create(data);
+            // return res.json(result);
+            fs.writeFileSync(
+                `./src/common/${col}/${col}-${collections.length}.json`,
+                JSON.stringify(data),
+            );
+            return res.json(collections[collections.length - 1]);
         }
     } catch (error) {
         console.error(error);
@@ -99,6 +114,57 @@ const pullData = async (res, col, type) => {
         }
     } catch (error) {
         console.error(error);
+    }
+};
+
+const deleteAndRestoreData = async (req, res, col, isDelete) => {
+    try {
+        const { id } = req.params;
+        const data = req.body;
+        if (!data) {
+            return res.status(400).json({ message: 'Missing data' });
+        }
+        const filePath = path.join(`./src/common/${col}`, `${col}-${id}.json`);
+        const highway = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        if (data?.indexs?.length === 0) {
+            highway.isDelete = isDelete;
+            highway.highways.forEach((item) => {
+                item.isDelete = isDelete;
+            });
+        } else {
+            data?.indexs?.forEach((index) => {
+                highway.highways[index].isDelete = isDelete;
+            });
+            if (
+                highway.highways.length === data.indexs.length ||
+                highway.highways.every((item) => item.isDelete === 0)
+            )
+                highway.isDelete = isDelete;
+        }
+        fs.writeFileSync(filePath, JSON.stringify(highway));
+        return res.json(highway);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+const updateDate = async (req, res, col) => {
+    try {
+        const { id } = req.params;
+        const data = req.body;
+        if (!data) {
+            return res.status(400).json({ message: 'Missing data' });
+        }
+        const filePath = path.join(`./src/common/${col}`, `${col}-${id}.json`);
+        const highway = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        highway.highways[data.index].maxSpeed = data.max_speed;
+        highway.highways[data.index].minSpeed = data.min_speed;
+        fs.writeFileSync(filePath, JSON.stringify(highway));
+        return res.json(highway);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: error.message });
     }
 };
 
@@ -141,7 +207,7 @@ class APIController {
             const result = (await Promise.all(promises)).filter(Boolean);
             if (result.length === 0) return res.json({ is_in_bounds: false });
         } catch (error) {
-            console.error(error);
+            // console.error(error);
         }
     }
 
@@ -179,7 +245,8 @@ class APIController {
     // [GET] /api/v1/highways/get-all
     async getAllHighways(req, res, next) {
         try {
-            const highways = await Highway.find({}).exec();
+            // const highways = await Highway.find({}).exec();
+            const highways = createPromise('highways');
             return res.json(highways);
         } catch (error) {
             // console.error(error);
@@ -189,49 +256,72 @@ class APIController {
     // [GET] /api/v1/trunk/get-all
     async getAllTrunks(req, res, next) {
         try {
-            const trunks = await Trunk.find({}).exec();
+            // const trunks = await Trunk.find({}).exec();
+            const trunks = createPromise('trunks');
             return res.json(trunks);
         } catch (error) {
             // console.error(error);
         }
     }
 
-    // [GET] /api/v1/highways/import
-    async importHighways(req, res, next) {
+    // [GET] /api/v1/tollboths/get-all
+    async getAllTollBoths(req, res, next) {
         try {
-            const results = await importData(Highway, 'highway.json');
-            if (results?.length > 0) {
-                res.json({ message: 'Success' });
-            } else {
-                res.json({ message: 'No data' });
-            }
+            const tollboths = createPromise('tollboths');
+            return res.json(tollboths);
         } catch (error) {
-            res.json({ message: error.message });
-        }
-    }
-
-    // [GET] /api/v1/trunks/import
-    async importTrunks(req, res, next) {
-        try {
-            const results = await importData(Trunk, 'trunk.json');
-            if (results?.length > 0) {
-                res.json({ message: 'Success' });
-            } else {
-                res.json({ message: 'No data' });
-            }
-        } catch (error) {
-            res.json({ message: error.message });
+            // console.error(error);
         }
     }
 
     // [POST] /api/v1/highways
     async insertHighway(req, res, next) {
-        await insertData(req, res, Highway);
+        await insertData(req, res, 'highways');
     }
 
     // [POST] /api/v1/trunk
     async insertTrunk(req, res, next) {
-        await insertData(req, res, Trunk);
+        await insertData(req, res, 'trunks');
+    }
+
+    // [PUT] /api/v1/highways/delete/:id
+    async deleteHighway(req, res, next) {
+        deleteAndRestoreData(req, res, 'highways', 1);
+    }
+
+    // [PUT] /api/v1/trunks/delete/:id
+    async deleteTrunk(req, res, next) {
+        deleteAndRestoreData(req, res, 'trunks', 1);
+    }
+
+    // [PUT] /api/v1/tollboths/delete/:id
+    async deleteTollBoth(req, res, next) {
+        deleteAndRestoreData(req, res, 'tollboths', 1);
+    }
+
+    // [PUT] /api/v1/highways/update/:id
+    async updateHighway(req, res, next) {
+        updateDate(req, res, 'highways');
+    }
+
+    // [PUT] /api/v1/trunks/update/:id
+    async updateTrunk(req, res, next) {
+        updateDate(req, res, 'trunks');
+    }
+
+    // [PUT] /api/v1/highways/restore/:id
+    async restoreHighway(req, res, next) {
+        deleteAndRestoreData(req, res, 'highways', 0);
+    }
+
+    // [PUT] /api/v1/trunks/restore/:id
+    async restoreTrunk(req, res, next) {
+        deleteAndRestoreData(req, res, 'trunks', 0);
+    }
+
+    // [PUT] /api/v1/tollboths/restore/:id
+    async restoreTollBoth(req, res, next) {
+        deleteAndRestoreData(req, res, 'tollboths', 0);
     }
 }
 

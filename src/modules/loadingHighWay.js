@@ -35,10 +35,17 @@ async function getResultHighwayAndTrunk() {
 async function loadHighways() {
     const key = 'highways';
     if (!redisClient.isReady && !cachedResults) {
-        const highways = createPromise('highways');
-        const trunks = createPromise('trunks');
-        const tollboths = createPromise('tollboths');
-
+        console.time('Loading data');
+        const highways = createPromise('highways').filter(
+            (item) => item.isDelete !== 1,
+        );
+        const trunks = createPromise('trunks').filter(
+            (item) => item.isDelete !== 1,
+        );
+        const tollboths = createPromise('tollboths').filter(
+            (item) => item.isDelete !== 1,
+        );
+        console.timeEnd('Loading data');
         cachedResults = [...highways, ...trunks, ...tollboths];
 
         return cachedResults;

@@ -76,13 +76,30 @@ const fetchData = async (type) => {
 
         let uniqueId = 0;
 
+        const handleFindMaxSpeed = (data) => {
+            return data.reduce(
+                (max, way) => Math.max(max, Number(way.maxSpeed) || 0),
+                0,
+            );
+        };
+
+        const handleFindMinSpeed = (data) => {
+            return data.reduce(
+                (min, way) => Math.min(min, Number(way.minSpeed) || Infinity),
+                Infinity,
+            );
+        };
+
         const groupedHighwaysArray = Object.values(groupedHighwayData).map(
-            (group) => ({
+            (group, index) => ({
+                id: index,
                 ref: group.ref,
                 highways: Object.entries(group.highways).map(
                     ([highway_name, highways]) => ({
                         id: uniqueId++,
                         highway_name,
+                        maxSpeed: handleFindMaxSpeed(highways),
+                        minSpeed: handleFindMinSpeed(highways),
                         ways: highways.map((highway) => ({
                             ...highway,
                             id: uniqueId++,

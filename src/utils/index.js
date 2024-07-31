@@ -46,14 +46,16 @@ function isPointInBounds(point, bounds) {
 
 function isPointInHighway(point, highways) {
     for (const highway of highways) {
-        for (const way of highway.ways) {
-            if (isPointInBounds(point, way.buffer_geometry)) {
-                return {
-                    isInBounds: true,
-                    max_speed: way.maxSpeed,
-                    min_speed: way.minSpeed,
-                    highway_name: highway.highway_name,
-                };
+        if (highway.isDelete !== 1) {
+            for (const way of highway.ways) {
+                if (isPointInBounds(point, way.buffer_geometry)) {
+                    return {
+                        isInBounds: true,
+                        max_speed: highway.maxSpeed,
+                        min_speed: highway.minSpeed,
+                        highway_name: highway.highway_name,
+                    };
+                }
             }
         }
     }

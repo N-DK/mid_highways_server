@@ -46,7 +46,7 @@ class MQTTService {
             const data = JSON.parse(message.toString());
             const fetch = async () => {
                 const res = await axios.get(
-                    `http://localhost:3000/api/v1/highways?lat=${Number(
+                    `http://localhost:3000/api/v1/check-way?lat=${Number(
                         data[0]?.mlat,
                     )}&lng=${Number(data[0]?.mlng)}`,
                 );
