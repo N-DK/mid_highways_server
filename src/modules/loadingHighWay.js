@@ -42,11 +42,11 @@ async function loadHighways() {
         const trunks = createPromise('trunks').filter(
             (item) => item.isDelete !== 1,
         );
-        const tollboths = createPromise('tollboths').filter(
-            (item) => item.isDelete !== 1,
-        );
+        // const tollboths = createPromise('tollboths').filter(
+        //     (item) => item.isDelete !== 1,
+        // );
         console.timeEnd('Loading data');
-        cachedResults = [...highways, ...trunks, ...tollboths];
+        cachedResults = [...highways, ...trunks];
 
         return cachedResults;
     } else if (!redisClient.isReady && cachedResults) {

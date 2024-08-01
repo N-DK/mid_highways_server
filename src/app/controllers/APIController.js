@@ -81,10 +81,11 @@ const insertData = async (req, res, col) => {
             return res.json(collections[index]);
         } else {
             // Create new ref
-            // data.highways[0].id = 1;
-            // data.highways[0].ways[0].id = 1;
             // const result = await Model.create(data);
             // return res.json(result);
+            data.id = collections.length;
+            data.highways[0].id = 1;
+            data.highways[0].ways[0].id = 1;
             fs.writeFileSync(
                 `./src/common/${col}/${col}-${collections.length}.json`,
                 JSON.stringify(data),

@@ -11,6 +11,7 @@ const { importData } = require('./modules/importData');
 const Highway = require('./app/models/Highway');
 const Trunk = require('./app/models/Trunk');
 const cors = require('cors');
+const MQTTService = require('./service/mqttService');
 require('dotenv').config();
 const port = process.env.PORT || 3000;
 app.use(cors({ origin: true, credentials: true }));
@@ -31,13 +32,18 @@ const connectDB = async () => {
 const server = http.createServer(app);
 
 // Connect socket
-// socket.initialize(server);
+socket.initialize(server);
 
 // Connect to redis
 // redisClient.connect();
 
 // Connect DB and load highways, then start server
-connectDB().then(() => {
+connectDB().then(async () => {
+    // const mqttService = new MQTTService(process.env.MQTT_HOST, null, null);
+    // await mqttService.initialize();
+    // mqttService.connect();
+    // mqttService.subscribe('live/status');
+
     route(app);
 
     server.listen(port, () => {

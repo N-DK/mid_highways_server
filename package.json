@@ -1,6 +1,6 @@
 {
     "name": "node_server",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "description": "warning highway",
     "main": "index.js",
     "scripts": {
@@ -25,6 +25,7 @@
         "mongodb": "^6.7.0",
         "mongoose": "^8.5.1",
         "mqtt": "^5.7.1",
+        "mysql": "^2.18.1",
         "redis": "^4.6.15",
         "socket.io": "^4.7.5",
         "socket.io-client": "^4.7.5",

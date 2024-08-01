@@ -6,14 +6,14 @@ const warningHighWay = (cars, io, highways, message) => {
         const point = [Number(data[0]?.mlat), Number(data[0]?.mlng)];
         highways?.forEach((ref) => {
             const carIndex = cars.findIndex(
-                (car) => car.vid === data[0]?.vid && car.ref_id.equals(ref._id),
+                (car) => car.vid === data[0]?.vid && car.ref_id === ref.id,
             );
 
             const inBounds = isPointInHighway(point, ref.highways);
 
             if (cars.length === 0 || carIndex === -1) {
                 cars.push({
-                    ref_id: ref._id,
+                    ref_id: ref.id,
                     vid: data[0]?.vid,
                     dev_id: data[0]?.id,
                     state: inBounds.isInBounds,
@@ -23,7 +23,7 @@ const warningHighWay = (cars, io, highways, message) => {
                 });
             } else {
                 const car = cars[carIndex];
-                if (car.ref_id.equals(ref._id)) {
+                if (car.ref_id === ref.id) {
                     const isInWarning = !car.state && inBounds.isInBounds;
                     const isOutWarning = car.state && !inBounds.isInBounds;
                     const payload = {

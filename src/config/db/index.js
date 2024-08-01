@@ -1,18 +1,21 @@
-const mongoose = require('mongoose');
-require('dotenv').config();
+var mysql = require('mysql');
+
+var con = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '271103',
+    database: 'mid_server',
+    port: 3306,
+});
 
 async function connect() {
     try {
-        await mongoose.connect(process.env.MONGODB_CONNECT_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            // Tăng thời gian chờ kết nối
-            serverSelectionTimeoutMS: 30000,
-        });
-        console.log('Connected to MongoDB');
+        await con.connect();
+        console.log('Connected to MySQL');
     } catch (error) {
-        console.log('Connect failure' + error.message);
+        console.error('Error during DB connection', error);
+        process.exit(1);
     }
 }
 
-module.exports = { connect };
+module.exports = { connect, con };
